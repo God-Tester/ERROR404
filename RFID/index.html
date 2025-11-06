@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFID Smart Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="app" :class="['container', {dark: darkMode}]">
+
+ 
+    <header>
+      <h1><i data-lucide=></i> RFID SMART DASHBOARD</h1>
+      <div class="header-actions">
+        <div class="refresh" :class="{ spinning: isRefreshing }" title="Auto-refreshing...">
+          <i data-lucide="refresh-cw"></i>
+        </div>
+        <button class="mode-toggle" @click="toggleMode">
+        </button>
+      </div>
+    </header>
+
+ 
+    <div class="cards">
+      <div class="card">
+        <i data-lucide="rss"></i>
+        <h2>{{ activeCount }}</h2>
+        <p>Active RFIDs</p>
+      </div>
+      <div class="card">
+        <i data-lucide="x-circle"></i>
+        <h2>{{ inactiveCount }}</h2>
+        <p>Inactive RFIDs</p>
+      </div>
+      <div class="card">
+        <i data-lucide="clock"></i>
+        <h2>{{ totalCount }}</h2>
+        <p>Total Logs</p>
+      </div>
+    </div>
+
+ 
+    <div class="search-bar">
+      <i data-lucide="search"></i>
+      <input 
+        type="text" 
+        placeholder="Search RFID..."
+        v-model="searchQuery"
+      />
+    </div>
+
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>RFID</th>
+            <th>Status</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="log in filteredLogs" :key="log.id">
+            <td>{{ log.rfid }}</td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" v-model="log.status" @change="saveData" />
+                <span class="slider"></span>
+              </label>
+            </td>
+            <td>{{ log.date }}</td>
+          </tr>
+          <tr v-if="filteredLogs.length === 0">
+            <td colspan="3" class="no-result">No matching RFID found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+   
+    <button @click="addRandomLog" class="add-btn">
+      <i data-lucide="plus-circle"></i> Add Log
+    </button>
+
+  
+    <div v-if="showToast" class="toast">
+      <i data-lucide="check-circle"></i> Refreshed!
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          rfidLogs: [
+            { id: 1, rfid: "88697684", status: true, date: "October 10, 2025 1:00PM" },
+            { id: 2, rfid: "09780647", status: false, date: "October 10, 2025 1:00PM" },
+            { id: 3, rfid: "75834600", status: true, date: "October 10, 2025 1:00PM" }
+          ],
+          searchQuery: "",
+          darkMode: false,
+          isRefreshing: false,
+          showToast: false
+        };
+      },
+      computed: {
+        filteredLogs() {
+          const q = this.searchQuery.toLowerCase();
+          return this.rfidLogs.filter(log => log.rfid.toLowerCase().includes(q));
+        },
+        activeCount() {
+          return this.rfidLogs.filter(log => log.status).length;
+        },
+        inactiveCount() {
+          return this.rfidLogs.filter(log => !log.status).length;
+        },
+        totalCount() {
+          return this.rfidLogs.length;
+        }
+      },
+      mounted() {
+        this.loadData();
+        this.autoRefresh();
+        lucide.createIcons();
+      },
+      updated() {
+        lucide.createIcons();
+      },
+      methods: {
+        saveData() {
+          localStorage.setItem("rfidLogs", JSON.stringify(this.rfidLogs));
+        },
+        loadData() {
+          const saved = localStorage.getItem("rfidLogs");
+          if (saved) this.rfidLogs = JSON.parse(saved);
+        },
+        autoRefresh() {
+          setInterval(() => {
+            this.isRefreshing = true;
+            setTimeout(() => {
+              this.loadData();
+              this.isRefreshing = false;
+              this.showToastMessage();
+            }, 1000);
+          }, 5000);
+        },
+        addRandomLog() {
+          const newLog = {
+            id: this.rfidLogs.length + 1,
+            rfid: Math.floor(Math.random() * 99999999).toString(),
+            status: Math.random() > 0.5,
+            date: new Date().toLocaleString()
+          };
+          this.rfidLogs.push(newLog);
+          this.saveData();
+        },
+        toggleMode() {
+          this.darkMode = !this.darkMode;
+        },
+        showToastMessage() {
+          this.showToast = true;
+          setTimeout(() => (this.showToast = false), 1500);
+        }
+      }
+    }).mount("#app");
+  </script>
+</body>
+</html>
+
