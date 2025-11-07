@@ -1,10 +1,8 @@
 <!-- What's inside VUE. The container -->
 <template>
   <div id="app" class="container">
-
     <header>
       <h1><i data-lucide=""></i> RFID DASHBOARD</h1>
-      <button class="mode-toggle" @click="toggleMode"></button>
     </header>
 
     <div class="cards">
@@ -29,7 +27,7 @@
 
     <div class="search-bar">
       <i data-lucide="search"></i>
-      <input type="text" placeholder="Search RFID..." v-model="searchQuery">
+      <input type="text" placeholder="Search RFID..." v-model="searchQuery" />
     </div>
 
     <div class="table-container">
@@ -49,7 +47,7 @@
             <td class="rfid-cell">
               {{ log.rfid }}
               <label class="switch">
-                <input type="checkbox" :checked="log.status === 1" @click="toggleStatus(log)">
+                <input type="checkbox" :checked="log.status === 1" @click="toggleStatus(log)" />
                 <span class="slider"></span>
               </label>
             </td>
@@ -58,7 +56,7 @@
                 :class="{
                   'active-status': log.status === 1,
                   'inactive-status': log.status === 0,
-                  'notfound-status': log.status !== 1 && log.status !== 0
+                  'notfound-status': log.status !== 1 && log.status !== 0,
                 }"
               >
                 {{ log.status === 1 ? '1' : log.status === 0 ? '0' : 'RFID Not Found' }}
@@ -74,70 +72,78 @@
       </table>
     </div>
 
-    <button class="add-btn" @click="addRandomLog">
-      <i data-lucide="plus-circle"></i> Add
-    </button>
+    <button class="add-btn" @click="addRandomLog"><i data-lucide="plus-circle"></i> Add</button>
 
-    <div v-if="showToast" class="toast">
-      <i data-lucide="check-circle"></i> Updated!
-    </div>
-
+    <div v-if="popupChecked" class="popup"><i data-lucide="check-circle"></i> Updated!</div>
   </div>
 </template>
 
-<!-- Logic part of VUE -->
+<!-- Logic part sa VUE -->
 <script>
 export default {
   data() {
     return {
       rfidLogs: [
-        { id: 1, rfid: "49877632", status: 1, date: "11/6/2025, 10:18:09 PM" },
-        { id: 2, rfid: "16549173", status: 0, date: "11/6/2025, 10:18:11 PM" },
-        { id: 3, rfid: "88697684", status: 2, date: "11/6/2025, 10:20:00 PM" } // Example of RFID Not Found
+        { id: 1, rfid: '49877632', status: 1, date: '11/6/2025, 10:18:09 PM' },
+        { id: 2, rfid: '16549173', status: 0, date: '11/6/2025, 10:18:11 PM' },
+        { id: 3, rfid: '88697684', status: 2, date: '11/6/2025, 10:20:00 PM' },
       ],
-      searchQuery: "",
-      darkMode: false,
-      showToast: false
+      searchQuery: '',
+      popupChecked: false,
     }
   },
+
   computed: {
     filteredLogs() {
-      return this.rfidLogs.filter(log =>
-        log.rfid.toLowerCase().includes(this.searchQuery.toLowerCase())
+      return this.rfidLogs.filter((log) =>
+        log.rfid.toLowerCase().includes(this.searchQuery.toLowerCase()),
       )
     },
-    activeCount() { return this.rfidLogs.filter(l => l.status === 1).length },
-    inactiveCount() { return this.rfidLogs.filter(l => l.status === 0).length },
-    totalCount() { return this.rfidLogs.length }
+
+    activeCount() {
+      return this.rfidLogs.filter((l) => l.status === 1).length
+    },
+
+    inactiveCount() {
+      return this.rfidLogs.filter((l) => l.status === 0).length
+    },
+
+    totalCount() {
+      return this.rfidLogs.length
+    },
   },
-  mounted() { lucide.createIcons() },
-  updated() { lucide.createIcons() },
+
+  mounted() {
+    lucide.createIcons()
+  },
+  updated() {
+    lucide.createIcons()
+  },
+
   methods: {
     toggleStatus(log) {
-      // Only toggle between 1 and 0, keep "Not Found" (like 2 or undefined) as is
       if (log.status === 1) log.status = 0
       else if (log.status === 0) log.status = 1
-      this.showToastMessage()
+      this.showPopupMessage()
     },
+
     addRandomLog() {
-      // Randomly assign 1, 0, or unknown
-      const randomStatus = Math.random() > 0.66 ? 1 : (Math.random() > 0.33 ? 0 : 2)
+      const randomAssign = Math.random() > 0.66 ? 1 : Math.random() > 0.33 ? 0 : 2
       this.rfidLogs.push({
         id: this.rfidLogs.length + 1,
         rfid: Math.floor(Math.random() * 99999999).toString(),
-        status: randomStatus,
-        date: new Date().toLocaleString()
+        status: randomAssign,
+        date: new Date().toLocaleString(),
       })
-      this.showToastMessage()
+
+      this.showPopupMessage()
     },
-    toggleMode() {
-      this.darkMode = !this.darkMode
+
+    showPopupMessage() {
+      this.popupChecked = true
+      setTimeout(() => (this.popupChecked = false), 1500)
     },
-    showToastMessage() {
-      this.showToast = true
-      setTimeout(() => this.showToast = false, 1500)
-    }
-  }
+  },
 }
 </script>
 
@@ -145,7 +151,6 @@ export default {
 <style src="./assets/styles/style.css"></style>
 
 <style>
-/* Optional extra style for 'RFID Not Found' */
 .notfound-status {
   color: gray;
   font-weight: bold;
