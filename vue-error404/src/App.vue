@@ -54,8 +54,14 @@
               </label>
             </td>
             <td>
-              <span :class="log.status === 1 ? 'active-status' : 'inactive-status'">
-                {{ log.status === 1 ? log.status : 'RFID Not Found' }}
+              <span
+                :class="{
+                  'active-status': log.status === 1,
+                  'inactive-status': log.status === 0,
+                  'notfound-status': log.status !== 1 && log.status !== 0
+                }"
+              >
+                {{ log.status === 1 ? '1' : log.status === 0 ? '0' : 'RFID Not Found' }}
               </span>
             </td>
             <td>{{ log.date }}</td>
@@ -87,7 +93,7 @@ export default {
       rfidLogs: [
         { id: 1, rfid: "49877632", status: 1, date: "11/6/2025, 10:18:09 PM" },
         { id: 2, rfid: "16549173", status: 0, date: "11/6/2025, 10:18:11 PM" },
-        { id: 3, rfid: "88697684", status: 1, date: "11/6/2025, 10:20:00 PM" }
+        { id: 3, rfid: "88697684", status: 2, date: "11/6/2025, 10:20:00 PM" } // Example of RFID Not Found
       ],
       searchQuery: "",
       darkMode: false,
@@ -108,14 +114,18 @@ export default {
   updated() { lucide.createIcons() },
   methods: {
     toggleStatus(log) {
-      log.status = log.status === 1 ? 0 : 1
+      // Only toggle between 1 and 0, keep "Not Found" (like 2 or undefined) as is
+      if (log.status === 1) log.status = 0
+      else if (log.status === 0) log.status = 1
       this.showToastMessage()
     },
     addRandomLog() {
+      // Randomly assign 1, 0, or unknown
+      const randomStatus = Math.random() > 0.66 ? 1 : (Math.random() > 0.33 ? 0 : 2)
       this.rfidLogs.push({
         id: this.rfidLogs.length + 1,
         rfid: Math.floor(Math.random() * 99999999).toString(),
-        status: Math.random() > 0.5 ? 1 : 0,
+        status: randomStatus,
         date: new Date().toLocaleString()
       })
       this.showToastMessage()
@@ -133,3 +143,11 @@ export default {
 
 <!-- the css style part to add design on frontend-->
 <style src="./assets/styles/style.css"></style>
+
+<style>
+/* Optional extra style for 'RFID Not Found' */
+.notfound-status {
+  color: gray;
+  font-weight: bold;
+}
+</style>
