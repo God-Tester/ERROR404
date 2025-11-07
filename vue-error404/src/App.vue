@@ -1,47 +1,135 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
+<!-- What's inside VUE. The container -->
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <div id="app" class="container">
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <header>
+      <h1><i data-lucide=""></i> RFID DASHBOARD</h1>
+      <button class="mode-toggle" @click="toggleMode"></button>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <i data-lucide="rss"></i>
+        <h2>{{ activeCount }}</h2>
+        <p>Active RFIDs</p>
+      </div>
+
+      <div class="card">
+        <i data-lucide="x-circle"></i>
+        <h2>{{ inactiveCount }}</h2>
+        <p>Inactive RFIDs</p>
+      </div>
+
+      <div class="card">
+        <i data-lucide="clock"></i>
+        <h2>{{ totalCount }}</h2>
+        <p>Total Logs</p>
+      </div>
     </div>
-  </header>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <div class="search-bar">
+      <i data-lucide="search"></i>
+      <input type="text" placeholder="Search RFID..." v-model="searchQuery">
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>RFID</th>
+            <th>Status</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="(log, index) in filteredLogs" :key="log.id">
+            <td>{{ index + 1 }}</td>
+            <td class="rfid-cell">
+              {{ log.rfid }}
+              <label class="switch">
+                <input type="checkbox" :checked="log.status === 1" @click="toggleStatus(log)">
+                <span class="slider"></span>
+              </label>
+            </td>
+            <td>
+              <span :class="log.status === 1 ? 'active-status' : 'inactive-status'">
+                {{ log.status === 1 ? log.status : 'RFID Not Found' }}
+              </span>
+            </td>
+            <td>{{ log.date }}</td>
+          </tr>
+
+          <tr v-if="filteredLogs.length === 0">
+            <td colspan="4" class="no-result">No matching RFID found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button class="add-btn" @click="addRandomLog">
+      <i data-lucide="plus-circle"></i> Add
+    </button>
+
+    <div v-if="showToast" class="toast">
+      <i data-lucide="check-circle"></i> Updated!
+    </div>
+
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+<!-- Logic part of VUE -->
+<script>
+export default {
+  data() {
+    return {
+      rfidLogs: [
+        { id: 1, rfid: "49877632", status: 1, date: "11/6/2025, 10:18:09 PM" },
+        { id: 2, rfid: "16549173", status: 0, date: "11/6/2025, 10:18:11 PM" },
+        { id: 3, rfid: "88697684", status: 1, date: "11/6/2025, 10:20:00 PM" }
+      ],
+      searchQuery: "",
+      darkMode: false,
+      showToast: false
+    }
+  },
+  computed: {
+    filteredLogs() {
+      return this.rfidLogs.filter(log =>
+        log.rfid.toLowerCase().includes(this.searchQuery.toLowerCase())
+      )
+    },
+    activeCount() { return this.rfidLogs.filter(l => l.status === 1).length },
+    inactiveCount() { return this.rfidLogs.filter(l => l.status === 0).length },
+    totalCount() { return this.rfidLogs.length }
+  },
+  mounted() { lucide.createIcons() },
+  updated() { lucide.createIcons() },
+  methods: {
+    toggleStatus(log) {
+      log.status = log.status === 1 ? 0 : 1
+      this.showToastMessage()
+    },
+    addRandomLog() {
+      this.rfidLogs.push({
+        id: this.rfidLogs.length + 1,
+        rfid: Math.floor(Math.random() * 99999999).toString(),
+        status: Math.random() > 0.5 ? 1 : 0,
+        date: new Date().toLocaleString()
+      })
+      this.showToastMessage()
+    },
+    toggleMode() {
+      this.darkMode = !this.darkMode
+    },
+    showToastMessage() {
+      this.showToast = true
+      setTimeout(() => this.showToast = false, 1500)
+    }
   }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
 }
-</style>
+</script>
+
+<!-- the css style part to add design on frontend-->
+<style src="./assets/styles/style.css"></style>
